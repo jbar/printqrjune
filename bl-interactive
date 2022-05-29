@@ -90,7 +90,7 @@ _bl_interactive_parseoptions() {
 	local npp=$#
 	for ((;$#;)) ; do
 		case "$1" in
-			-f|--frontend) shift ; BL_INTERACTIVE_FRONTEND="$1" ;; # WARNING: dialog use to be compatible with whiptail, but it's very buggy.
+			-f|--frontend) shift ; command -v "$1" > /dev/null && BL_INTERACTIVE_FRONTEND="$1" ;; # WARNING: dialog use to be compatible with whiptail, but it's very buggy.
 			-h|--help) printf "%s\n%s\n%s\n" "$BL_INTERACTIVE_usage" "$BL_INTERACTIVE_chelpmsg" "$BL_INTERACTIVE_shelpmsg" ; return 2 ;;
 			-V|--version) printf "%s %s\n" "$BL_INTERACTIVE_NAME" "$BL_INTERACTIVE_VERSION" ; return 2 ;;
 			--) shift ; break ;;
