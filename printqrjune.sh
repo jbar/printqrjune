@@ -15,11 +15,19 @@ helpmsg="Usage: $PGPI_NAME [-n NUM_COPIES] UID_or_PUBKEY
 
 Options:
     -n, --num NUM_COPIES   number of copies (default: $NUM_COPIES)
+    -k, --key PUBKEY   PUBKEY (to avoid lookup)
 "
 
 for ((i=0;$#;)) ; do
 case "$1" in
 	-n|--num) shift ; NUM_COPIES="$1" ;;
+	-k|--key) shift
+		if [[ ${#1} != 44 ]] ; then
+			echo "Warning: key $1 don't contain 44 chars -> ignored" >&2
+		else
+			p="$1"
+		fi
+		;;
 	-h|--h*) echo "$helpmsg" ; exit ;;
 	-V|--vers*) echo "$PGPI_NAME $PGPI_VERSION" ; exit ;;
 	--) shift ; break ;;
@@ -41,14 +49,20 @@ UIDP="$1"
 
 set -e
 set -o pipefail
-echo "Looking for $UIDP ..."
-lookup="$(silkaj lookup "$UIDP" )"
-echo "$lookup"
-lookup="$(grep "^→" <<<"$lookup")"
-mapfile -t keys <<<"$lookup"
 
-choosed=$(bl_radiolist --output-value --num-per-line 1 --default 1 --text "Which keys to print ?" "${keys[@]}")
-IFS=" :" read f p k f uid etc <<<"$choosed"
+
+if [[ -z $p ]] ; then
+	echo "Looking for $UIDP ..."
+	lookup="$(silkaj lookup "$UIDP" )"
+	echo "$lookup"
+	lookup="$(grep "^→" <<<"$lookup")"
+	mapfile -t keys <<<"$lookup"
+
+	choosed=$(bl_radiolist --output-value --num-per-line 1 --default 1 --text "Which keys to print ?" "${keys[@]}")
+	IFS=" :" read f p k f uid etc <<<"$choosed"
+else
+	uid="$UIDP"
+fi
 
 echo -n "$p" | qrencode --level=M --output tmp.png
 
